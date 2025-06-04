@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud Recommendation System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      color: #fff;
+      padding: 40px;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 700px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      border-radius: 10px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      background-color: #00c6ff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0072ff;
+    }
+
+    #result {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    h3, h4 {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1> AWS Cloud Service Recommendation Tool</h1>
+
+  <div class="container">
+    <label for="type">Select Recommendation Type:</label>
+    <select id="type">
+      <option value="cloud_service_optimization">Cloud Service Optimization</option>
+      <option value="tech_stack">Smart Tech Stack Recommender</option>
+      <option value="saas_bundle">SaaS Product Bundle</option>
+      <option value="cost_optimization">AWS Cost Optimization</option>
+      <option value="marketplace">Service Marketplace</option>
+      <option value="security_engine">Security Service Engine</option>
+    </select>
+
+    <div id="extra-fields">
+      <!-- Dynamic input fields will be inserted here -->
+    </div>
+
+    <button onclick="getRecommendation()">Get Recommendation</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const typeSelect = document.getElementById('type');
+    const extraFieldsDiv = document.getElementById('extra-fields');
+    const resultDiv = document.getElementById('result');
+
+    typeSelect.addEventListener('change', updateFields);
+
+    function updateFields() {
+      const type = typeSelect.value;
+      let fields = '';
+
+      switch (type) {
+        case 'cloud_service_optimization':
+          fields = `
+            <label for="workload">Workload:</label>
+            <select id="workload">
+              <option value="compute-intensive">Compute-Intensive</option>
+              <option value="event-driven">Event-Driven</option>
+              <option value="general">General</option>
+            </select>
+
+            <label for="budget">Budget:</label>
+            <select id="budget">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          `;
+          break;
+
+        case 'tech_stack':
+          fields = `
+            <label for="traffic">Expected Traffic:</label>
+            <select id="traffic">
+              <option value="low">Low</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+            </select>
+          `;
+          break;
+
+        case 'saas_bundle':
+          fields = `
+            <label for="company_size">Company Size:</label>
+            <select id="company_size">
+              <option value="startup">Startup</option>
+              <option value="mid">Mid-Size</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          `;
+          break;
+
+        case 'marketplace':
+          fields = `
+            <label for="industry">Industry:</label>
+            <input type="text" id="industry" placeholder="e.g., finance, ecommerce">
+          `;
+          break;
+
+        case 'security_engine':
+          fields = `
+            <label for="data_type">Type of Data:</label>
+            <input type="text" id="data_type" placeholder="e.g., PII, financial, general">
+          `;
+          break;
+
+        default:
+          fields = '';
+      }
+
+      extraFieldsDiv.innerHTML = fields;
+    }
+
+    function getRecommendation() {
+      const type = typeSelect.value;
+      const payload = { type };
+
+      // Collect extra fields dynamically
+      if (document.getElementById('workload')) payload.workload = document.getElementById('workload').value;
+      if (document.getElementById('budget')) payload.budget = document.getElementById('budget').value;
+      if (document.getElementById('traffic')) payload.traffic = document.getElementById('traffic').value;
+      if (document.getElementById('company_size')) payload.company_size = document.getElementById('company_size').value;
+      if (document.getElementById('industry')) payload.industry = document.getElementById('industry').value;
+      if (document.getElementById('data_type')) payload.data_type = document.getElementById('data_type').value;
+
+      fetch('http://3.87.4.6:5000/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+        } else {
+          let html = `
+            <h3>Recommendation:</h3>
+            <p>${data.recommendation}</p>
+            <h4>Benefits:</h4>
+            <ul>${data.benefits.map(b => `<li>${b}</li>`).join('')}</ul>
+            <h4>Example:</h4>
+            <p>${data.example}</p>
+          `;
+          resultDiv.innerHTML = html;
+        }
+      })
+      .catch(err => {
+        resultDiv.innerHTML = `<p style="color: red;">Error connecting to backend.</p>`;
+        console.error(err);
+      });
+    }
+
+    // Initialize the form on page load
+    updateFields();
+  </script>
+
+</body>
+</html>
